@@ -3,7 +3,7 @@ from typing import TypedDict, List
 from langchain_core.documents import Document
 from agents import embed_and_store
 
-# ✅ State only includes pre-processed documents
+# State only includes pre-processed documents
 class IngestionState(TypedDict):
     docs: List[Document]
 

@@ -5,7 +5,7 @@ from typing import TypedDict, List
 from langchain_core.documents import Document
 from agents import generate_query_variants, retrieve_documents, fuse_and_summarize
 
-# ✅ Define the state schema for LangGraph
+# Define the state schema for LangGraph
 class QueryState(TypedDict):
     query: str
     queries: List[str]
@@ -13,7 +13,7 @@ class QueryState(TypedDict):
     original: str
     answer: str
 
-# ✅ Pass the schema to StateGraph
+# Pass the schema to StateGraph
 graph_builder = StateGraph(QueryState)
 
 # Add nodes (LangGraph agents)

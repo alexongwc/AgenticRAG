@@ -1,11 +1,11 @@
-# 📁 src/agents.py
+# src/agents.py
 import os
 import ast
 from tempfile import NamedTemporaryFile
 import streamlit as st
 
 from openai import OpenAI
-from langchain_community.embeddings import OpenAIEmbeddings
+
 from langchain_community.vectorstores import Pinecone
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -15,8 +15,8 @@ from pinecone_utils import embedding_model, index_name
 # Set up OpenAI client using secret
 api_key = st.secrets.get("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
-print("🔑 DEBUG: OPENAI_API_KEY =", "✅ FOUND" if api_key else "❌ MISSING")
-print("📦 Using Pinecone index:", index_name)
+print("DEBUG: OPENAI_API_KEY =", "FOUND" if api_key else "MISSING")
+print("Using Pinecone index:", index_name)
 
 def load_and_split_docs(uploaded_file):
     suffix = f".{uploaded_file.name.split('.')[-1]}"
@@ -30,7 +30,7 @@ def load_and_split_docs(uploaded_file):
         elif tmp_path.endswith(".xlsx"):
             loader = UnstructuredExcelLoader(tmp_path)
         else:
-            raise ValueError("❌ Unsupported file type")
+            raise ValueError("Unsupported file type")
         docs = loader.load()
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         return splitter.split_documents(docs)
@@ -56,7 +56,7 @@ def ingest_document(uploaded_file):
         elif file_path.endswith(".xlsx"):
             loader = UnstructuredExcelLoader(file_path)
         else:
-            return "❌ Unsupported file type."
+            return "Unsupported file type."
 
         docs = loader.load()
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -69,7 +69,7 @@ def ingest_document(uploaded_file):
             text_key="text"
         )
 
-        return f"✅ Ingested {len(chunks)} chunks into Pinecone."
+        return f"Ingested {len(chunks)} chunks into Pinecone."
 
 def generate_query_variants(query: str):
     prompt = f"""
@@ -87,13 +87,13 @@ def generate_query_variants(query: str):
         queries = ast.literal_eval(raw_output)
         assert isinstance(queries, list) and all(isinstance(q, str) for q in queries)
     except Exception as e:
-        print("⚠️ Could not parse rephrased output:", e)
+        print("Could not parse rephrased output:", e)
         queries = [query]
 
     return {"queries": queries, "original": query, "query": query}
 
 def retrieve_documents(state):
-    print("🧪 RAW query object:", state["query"], type(state["query"]))
+    print("RAW query object:", state["query"], type(state["query"]))
 
     vectorstore = Pinecone.from_existing_index(index_name=index_name, embedding=embedding_model, text_key="text")
 
