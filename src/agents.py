@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 import streamlit as st
 
 from openai import OpenAI
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
