@@ -1,16 +1,22 @@
 streamlit==1.38.0
 rich==13.7.1
 
-langchain==0.1.17
-langchain-core==0.1.48
-langchain-community==0.0.36
-langgraph==0.0.30
+# LangChain Ecosystem - Compatible with 0.2.x versions
+langchain==0.2.17
+langchain-core==0.2.43
+langchain-openai==0.1.25
+langchain-community==0.2.21
+langgraph==0.3.31
 
+# Vector Store and Embeddings
 pinecone-client==3.2.2
 langchain-pinecone==0.0.3
 
+# OpenAI & Tokenizer
 openai==1.13.3
 tiktoken==0.6.0
+
+# Utils
 python-dotenv==1.0.1
 PyPDF2==3.0.1
 pypdf==3.17.4
