@@ -1,7 +1,7 @@
 # 📁 src/pinecone_utils.py
 import streamlit as st
 from pinecone import Pinecone, ServerlessSpec
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 
 # Load from Streamlit secret
 api_key = st.secrets.get("PINECONE_API_KEY")
