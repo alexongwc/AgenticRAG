@@ -20,6 +20,6 @@ if index_name not in pc.list_indexes().names():
     )
 
 # Embedding model
-embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=openai_key)
+embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 
 __all__ = ["embedding_model", "index_name"]
