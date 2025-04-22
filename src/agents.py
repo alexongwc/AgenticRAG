@@ -1,34 +1,28 @@
+# 📁 src/agents.py
 import os
-from dotenv import load_dotenv
-from pathlib import Path
 import ast
 from tempfile import NamedTemporaryFile
+import streamlit as st
 
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
-from langchain_pinecone import PineconeVectorStore
+from langchain_community.vectorstores import Pinecone
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from pinecone_utils import embedding_model, index_name
 
-# Load .env
-os.environ.pop("OPENAI_API_KEY", None)
-dotenv_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(dotenv_path)
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-print("🔑 DEBUG: OPENAI_API_KEY =", repr(os.getenv("OPENAI_API_KEY")))
+# Set up OpenAI client using secret
+api_key = st.secrets.get("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
+print("🔑 DEBUG: OPENAI_API_KEY =", "✅ FOUND" if api_key else "❌ MISSING")
 print("📦 Using Pinecone index:", index_name)
-
-
-# === Main ingest function ===
 
 def load_and_split_docs(uploaded_file):
     suffix = f".{uploaded_file.name.split('.')[-1]}"
     with NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(uploaded_file.getvalue())
-        tmp_path = tmp.name  # Save path for later
+        tmp_path = tmp.name
 
     try:
         if tmp_path.endswith(".pdf"):
@@ -36,31 +30,27 @@ def load_and_split_docs(uploaded_file):
         elif tmp_path.endswith(".xlsx"):
             loader = UnstructuredExcelLoader(tmp_path)
         else:
-            raise ValueError("❌ Unsupported file type.")
-
+            raise ValueError("❌ Unsupported file type")
         docs = loader.load()
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         return splitter.split_documents(docs)
     finally:
-        # ✅ Clean up temp file manually (important!)
         os.remove(tmp_path)
-    
+
 def embed_and_store(docs):
-    PineconeVectorStore.from_documents(
+    Pinecone.from_documents(
         documents=docs,
         embedding=embedding_model,
-        index_name=index_name,  # ✅ your actual Pinecone index name
+        index_name=index_name,
         text_key="text"
     )
 
 def ingest_document(uploaded_file):
-    # Save file temporarily in memory
     with NamedTemporaryFile(delete=True, suffix=f".{uploaded_file.name.split('.')[-1]}") as tmp:
         tmp.write(uploaded_file.getvalue())
         tmp.flush()
         file_path = tmp.name
 
-        # Load and split
         if file_path.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
         elif file_path.endswith(".xlsx"):
@@ -72,8 +62,7 @@ def ingest_document(uploaded_file):
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         chunks = splitter.split_documents(docs)
 
-        # Embed and store into Pinecone
-        PineconeVectorStore.from_documents(
+        Pinecone.from_documents(
             documents=chunks,
             embedding=embedding_model,
             index_name=index_name,
@@ -81,8 +70,6 @@ def ingest_document(uploaded_file):
         )
 
         return f"✅ Ingested {len(chunks)} chunks into Pinecone."
-
-# === Query pipeline ===
 
 def generate_query_variants(query: str):
     prompt = f"""
@@ -104,30 +91,23 @@ def generate_query_variants(query: str):
         queries = [query]
 
     return {"queries": queries, "original": query, "query": query}
-    
-
 
 def retrieve_documents(state):
+    print("🧪 RAW query object:", state["query"], type(state["query"]))
 
-
-    print("🧪 RAW query object:", state["query"], type(state["query"]))  # ✅ Add here
-
-    vectorstore = PineconeVectorStore(index_name=index_name, embedding=embedding_model, text_key="text")
+    vectorstore = Pinecone.from_existing_index(index_name=index_name, embedding=embedding_model, text_key="text")
 
     raw_query = state["query"]
 
-    # ✅ Unwrap if it's accidentally a nested dict
     if isinstance(raw_query, dict):
         query = raw_query.get("query", "")
     else:
         query = raw_query
 
-    # ✅ Enforce string
     if not isinstance(query, str):
         raise ValueError(f"Expected query to be string, got {type(query)}: {query}")
 
     print("🔍 Final query string used for similarity search:", query)
-
     docs = vectorstore.similarity_search(query, k=3)
 
     return {
