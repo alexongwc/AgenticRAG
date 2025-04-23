@@ -9,8 +9,8 @@ import openai
 openai.api_key = st.secrets.get("OPENAI_API_KEY")
 print("🔑 DEBUG: OPENAI_API_KEY =", "FOUND" if openai.api_key else "MISSING")
 
-st.set_page_config(page_title="Cedars Digital Agentic RAG MiniPoC", layout="centered")
-st.title("Cedars Digital Agentic RAG Mini PoC")
+st.set_page_config(page_title="Agentic RAG ", layout="centered")
+st.title("Agentic RAG ")
 st.write("Upload a PDF or Excel file and ask a question about its content.")
 
 uploaded_file = st.file_uploader("Upload a PDF or Excel file", type=["pdf", "xlsx"])
